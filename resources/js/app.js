@@ -3,23 +3,53 @@ $(document).ready(function () {
     let selectedUserId = null;
 
     // Laravel Echo presence
-    window.Echo.join('chat.presence')
-       
-        .joining((user) => {})
-        .leaving((user) => {})
-        .listen('ChatMessageSent', (e) => {
-            if ((e.receiver_id === window.userId || e.sender_id === window.userId) &&
-                (e.receiver_id === selectedUserId || e.sender_id === selectedUserId)) {
+   let onlineUsers = [];
 
-                const side = e.sender_id === window.userId ? 'you' : 'other';
-                const name = e.sender_id === window.userId ? 'You' : e.sender_name;
+window.Echo.join('chat.presence')
+    .here((users) => {
+        onlineUsers = users;
+        updateOnlineUserList();
+    })
+    .joining((user) => {
+        onlineUsers.push(user);
+        updateOnlineUserList();
+    })
+    .leaving((user) => {
+        onlineUsers = onlineUsers.filter(u => u.id !== user.id);
+        updateOnlineUserList();
+    })
+    .listen('ChatMessageSent', (e) => {
+        if ((e.receiver_id === window.userId || e.sender_id === window.userId) &&
+            (e.receiver_id === selectedUserId || e.sender_id === selectedUserId)) {
 
-                $('#messages').append(
-                    `<div class="message ${side}"><strong>${name}:</strong> ${e.message}</div>`
-                );
-                scrollToBottom();
-            }
-        });
+            const side = e.sender_id === window.userId ? 'you' : 'other';
+            const name = e.sender_id === window.userId ? 'You' : e.sender_name;
+
+            $('#messages').append(
+                `<div class="message ${side}"><strong>${name}:</strong> ${e.message}</div>`
+            );
+            scrollToBottom();
+        }
+    });
+
+// Helper to update modal with online users
+function updateOnlineUserList() {
+    const $list = $('#online-users-list');
+    $list.empty();
+
+    // Filter out the current user
+    const filteredUsers = onlineUsers.filter(user => user.id !== window.userId);
+
+    if (filteredUsers.length === 0) {
+        $list.append('<li class="list-group-item text-muted">No other users online</li>');
+        return;
+    }
+
+    filteredUsers.forEach(user => {
+        $list.append(`<li class="list-group-item">${user.name}</li>`);
+    });
+}
+
 
     // Click on user to start chat
     $(document).on('click', '.user-item', function () {

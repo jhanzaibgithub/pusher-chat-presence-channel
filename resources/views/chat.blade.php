@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Laravel Chat App</title>
+    <title>Pusher Chat App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -19,6 +19,29 @@
 <div class="container py-4">
 
 <h1>Welcome back {{ auth()->user()->name }}</h1>
+<!-- Check Online Users Button -->
+<div class="text-end">
+    <button class="btn btn-outline-success mb-3" data-bs-toggle="modal" data-bs-target="#onlineUsersModal">
+        👥 Check Online Users
+    </button>
+</div>
+<!-- Online Users Modal -->
+<div class="modal fade" id="onlineUsersModal" tabindex="-1" aria-labelledby="onlineUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Online Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="online-users-list">
+                    <!-- Dynamic user list will be appended here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
     <div class="chat-container mx-auto mt-3">
         <!-- User List -->
         <div class="user-list p-3">
