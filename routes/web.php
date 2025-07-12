@@ -2,16 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatController;
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+use Illuminate\Support\Facades\Auth;
+
+
+Route::get('/chat', [ChatController::class, 'chatPage'])->middleware('auth');
+Route::get('/chat/messages/{user}', [ChatController::class, 'getMessages'])->middleware('auth');
+Route::post('/chat/send', [ChatController::class, 'send'])->middleware('auth');
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,6 +16,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-// routes/web.php
-Route::get('/chat/{user}', [ChatController::class, 'index'])->middleware('auth');
-Route::post('/chat/send', [ChatController::class, 'send'])->middleware('auth');
+Route::get('/logout', function () {
+    Auth::logout();
+    return redirect('/login');
+})->name('logout');

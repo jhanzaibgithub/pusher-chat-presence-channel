@@ -1,48 +1,54 @@
 <?php
+
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use App\Models\Message;
+
 use App\Models\User;
-use App\Events\ChatMessageSent;
+use App\Models\Message;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Events\ChatMessageSent;
 
 class ChatController extends Controller
 {
-    public function index($userId)
+    public function chatPage()
     {
-        // dd($userId);
-        $otherUser =User::findOrFail($userId);
+        $users = User::where('id', '!=', Auth::id())->get();
+        return view('chat', compact('users'));
+    }
 
+    public function getMessages($userId)
+    {
         $messages = Message::where(function ($query) use ($userId) {
             $query->where('sender_id', Auth::id())
                   ->where('receiver_id', $userId);
         })->orWhere(function ($query) use ($userId) {
             $query->where('sender_id', $userId)
                   ->where('receiver_id', Auth::id());
-        })->with(['sender', 'receiver'])->get();
+        })->with(['sender'])->get();
 
-        $users =User::where('id', '!=', Auth::id())->get();
+        $otherUser = User::find($userId);
 
-        return view('chat', compact('users', 'messages', 'otherUser'));
+        return response()->json([
+            'messages' => $messages,
+            'user' => $otherUser,
+        ]);
     }
 
-   public function send(Request $request)
-{
-    // dd($request->all());
-    $request->validate([
-        'message' => 'required|string',
-        'receiver_id' => 'required|exists:users,id'
-    ]);
+    public function send(Request $request)
+    {
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'required|string'
+        ]);
 
-    $message = Message::create([
-        'sender_id' => Auth::id(),
-        'receiver_id' => $request->receiver_id,
-        'message' => $request->message,
-    ]);
+        $message = Message::create([
+            'sender_id' => Auth::id(),
+            'receiver_id' => $request->receiver_id,
+            'message' => $request->message,
+        ]);
 
-    // Broadcast the message to others (real-time)
-    broadcast(new ChatMessageSent($message->load('sender')))->toOthers();
+        broadcast(new ChatMessageSent($message->load('sender')))->toOthers();
 
-    return response()->json(['status' => 'Message Sent!']);
-}
+        return response()->json(['status' => 'sent']);
+    }
 }

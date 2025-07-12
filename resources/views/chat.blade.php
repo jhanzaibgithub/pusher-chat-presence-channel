@@ -4,116 +4,202 @@
     <meta charset="UTF-8">
     <title>Laravel Chat App</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Laravel Echo + Pusher -->
+    <!-- Pusher & Laravel Echo -->
     <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
 
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    <style>
+        body {
+            background-color: #f1f1f1;
+        }
+
+        .chat-container {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            height: 80vh;
+        }
+
+        .user-list {
+            width: 30%;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+        }
+
+        .chat-box {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background: #e9ecef;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            max-width: 26%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            clear: both;
+        }
+
+        .message.you {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.other {
+            background-color: #f1f1f1;
+            color: #000;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .chat-footer {
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background: #fff;
+        }
+
+        .user-item:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
 
     <script>
         window.userId = {{ auth()->id() }};
     </script>
 </head>
 <body>
-    <div class="container py-4">
-        <div class="row">
-            <h1>{{ auth()->user()->name }}</h1>
+<div class="container py-4">
+    <div class="chat-container mx-auto">
+        <!-- User List -->
+        <div class="user-list p-3">
+            <h5>💬 Chat Started With</h5>
+            <ul class="list-group">
+                @foreach ($users as $user)
+                    <li class="list-group-item user-item" data-id="{{ $user->id }}" style="cursor:pointer;">
+                        {{ $user->name }}
+                    </li>
+                @endforeach
+            </ul>
+        </div>
 
-            <!-- User List -->
-            <div class="col-md-4">
-                <h5>all Users</h5>
-                <ul class="list-group mb-3" id="online-users">
-                    <!-- Online users from Echo will be shown here -->
-                </ul>
-                <ul class="list-group">
-                    @foreach ($users as $user)
-                        <a href="{{ url('/chat/' . $user->id) }}" class="list-group-item">
-                            {{ $user->name }}
-                        </a>
-                    @endforeach
-                </ul>
+        <!-- Chat Box -->
+        <div class="chat-box">
+            <div class="p-3 border-bottom">
+                <h5>Chat with <span id="chat-with">No one</span></h5>
             </div>
+            <div id="messages" class="messages"></div>
 
-            <!-- Chat Messages -->
-            <div class="col-md-8">
-                <h5>Chat with {{ $otherUser->name }}</h5>
-                <ul id="messages" class="list-group mb-3">
-                    @foreach ($messages as $msg)
-                        <li class="list-group-item">
-                            <strong>{{ $msg->sender->id === auth()->id() ? 'You' : $msg->sender->name }}:</strong>
-                            {{ $msg->message }}
-                        </li>
-                    @endforeach
-                </ul>
-
-                <form id="chat-form">
+            <div class="chat-footer">
+                <form id="chat-form" class="d-flex">
                     @csrf
-                    <input type="hidden" id="receiver_id" value="{{ $otherUser->id }}">
-                    <input type="text" id="message" class="form-control" placeholder="Type a message">
-                    <button class="btn btn-primary mt-2">Send</button>
+                    <input type="hidden" id="receiver_id">
+                    <input type="text" id="message" class="form-control me-2" placeholder="Type a message">
+                    <button class="btn btn-primary">Send</button>
                 </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        $(document).ready(function () {
-            // Echo presence channel
-            window.Echo.join('chat.presence')
-                .here((users) => {
-                    $('#online-users').html('');
-                    users.forEach(user => {
-                        $('#online-users').append(`<li class="list-group-item">${user.name}</li>`);
-                    });
-                })
-                .joining((user) => {
-                    $('#online-users').append(`<li class="list-group-item">${user.name}</li>`);
-                })
-                .leaving((user) => {
-                    $(`#online-users li:contains(${user.name})`).remove();
-                })
-                .listen('ChatMessageSent', (e) => {
-                    if (e.receiver_id === window.userId || e.sender_id === window.userId) {
-                        $('#messages').append(
-                            `<li class="list-group-item"><strong>${e.sender_name}:</strong> ${e.message}</li>`
-                        );
-                    }
-                });
+<script>
+$(document).ready(function () {
+    let selectedUserId = null;
 
-            // AJAX message send
-            $('#chat-form').submit(function (e) {
-                e.preventDefault();
+    // Laravel Echo presence
+    window.Echo.join('chat.presence')
+        .here((users) => {})
+        .joining((user) => {})
+        .leaving((user) => {})
+        .listen('ChatMessageSent', (e) => {
+            if ((e.receiver_id === window.userId || e.sender_id === window.userId) &&
+                (e.receiver_id === selectedUserId || e.sender_id === selectedUserId)) {
 
-                const message = $('#message').val();
-                const receiver_id = $('#receiver_id').val();
+                const side = e.sender_id === window.userId ? 'you' : 'other';
+                const name = e.sender_id === window.userId ? 'You' : e.sender_name;
 
-                if (!message.trim()) return;
-
-                $.ajax({
-                    url: '{{ url("/chat/send") }}',
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        message: message,
-                        receiver_id: receiver_id
-                    },
-                   
-                    error: function (xhr) {
-                        console.error(xhr.responseText);
-                        alert('Message sending failed!');
-                    }
-                });
-            });
+                $('#messages').append(
+                    `<div class="message ${side}"><strong>${name}:</strong> ${e.message}</div>`
+                );
+                scrollToBottom();
+            }
         });
-    </script>
+
+    // User click to open chat
+    $('.user-item').click(function () {
+        selectedUserId = $(this).data('id');
+        $.get('/chat/messages/' + selectedUserId, function (res) {
+            $('#chat-with').text(res.user.name);
+            $('#receiver_id').val(selectedUserId);
+            $('#messages').html('');
+
+            res.messages.forEach(msg => {
+                const side = msg.sender.id === window.userId ? 'you' : 'other';
+                const name = msg.sender.id === window.userId ? 'You' : msg.sender.name;
+
+                $('#messages').append(
+                    `<div class="message ${side}"><strong>${name}:</strong> ${msg.message}</div>`
+                );
+            });
+
+            scrollToBottom();
+        });
+    });
+
+    // Message send
+    $('#chat-form').submit(function (e) {
+        e.preventDefault();
+        const message = $('#message').val().trim();
+        const receiver_id = $('#receiver_id').val();
+
+        if (!message || !receiver_id) {
+            alert('Select a user and enter a message');
+            return;
+        }
+
+        $.ajax({
+            url: '/chat/send',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                message,
+                receiver_id
+            },
+            success: function () {
+                $('#message').val('');
+            },
+            error: function (xhr) {
+                alert('Message send failed');
+                console.error(xhr.responseText);
+            }
+        });
+    });
+
+    function scrollToBottom() {
+        const messages = document.getElementById('messages');
+        messages.scrollTop = messages.scrollHeight;
+    }
+});
+</script>
 </body>
 </html>
