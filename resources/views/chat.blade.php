@@ -10,7 +10,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <script>
-        window.userId = {{ auth()->id() }};
+        window.userId = @json(auth()->id());
     </script>
 </head>
 <body>
