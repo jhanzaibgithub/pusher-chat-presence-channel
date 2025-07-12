@@ -4,9 +4,7 @@ $(document).ready(function () {
 
     // Laravel Echo presence
     window.Echo.join('chat.presence')
-        .here((users) => {
-            // Optional: handle online users
-        })
+       
         .joining((user) => {})
         .leaving((user) => {})
         .listen('ChatMessageSent', (e) => {
