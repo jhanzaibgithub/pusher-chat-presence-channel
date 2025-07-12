@@ -29,6 +29,8 @@ class HomeController extends Controller
     /**
      * Log the user out of the application.
      *
+     * Invalidates the session and regenerates the CSRF token for security.
+     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -36,6 +38,7 @@ class HomeController extends Controller
     {
         Auth::logout();
         $request->session()->invalidate();
+        $request->session()->regenerate();
         $request->session()->regenerateToken();
         return redirect('/login');
     }

@@ -14,12 +14,23 @@ $(function () {
         const m = document.getElementById('messages');
         m.scrollTop = m.scrollHeight;
     }
+function updateOnlineIndicators() {
+    const onlineIds = onlineUsers.map(user => user.id);
+    $('.online-badge').addClass('d-none'); 
+
+    onlineIds.forEach(id => {
+        const badge = $('#online-indicator-' + id);
+        if (badge.length) {
+            badge.removeClass('d-none'); 
+        }
+    });
+}
 
     if (window.Echo) {
         window.Echo.join('chat.presence')
-            .here(users => { onlineUsers = users; updateOnlineUserList(); })
-            .joining(user => { onlineUsers.push(user); updateOnlineUserList(); })
-            .leaving(user => { onlineUsers = onlineUsers.filter(u => u.id !== user.id); updateOnlineUserList(); })
+            .here(users => { onlineUsers = users; updateOnlineUserList();  updateOnlineIndicators(); })
+            .joining(user => { onlineUsers.push(user); updateOnlineUserList(); updateOnlineIndicators();})
+            .leaving(user => { onlineUsers = onlineUsers.filter(u => u.id !== user.id); updateOnlineUserList(); updateOnlineIndicators();})
             .listen('ChatMessageSent', e => {
                 if ([e.receiver_id, e.sender_id].includes(window.userId) && [e.receiver_id, e.sender_id].includes(selectedUserId)) {
                     const side = e.sender_id === window.userId ? 'you' : 'other';

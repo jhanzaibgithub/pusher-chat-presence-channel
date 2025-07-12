@@ -10,13 +10,17 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <script>
-        window.userId = @json(auth()->id());
+        window.userId = {{ auth()->check() ? json_encode(auth()->id()) : 'null' }};
     </script>
 </head>
 <body>
 <div class="container py-4">
 
-<h1>Welcome back {{ auth()->user()->name }}</h1>
+@if(auth()->check())
+    <h1>Welcome back {{ auth()->user()->name }}</h1>
+@else
+    <h1>Welcome to Pusher Chat App</h1>
+@endif
 <!-- Check Online Users Button -->
 <div class="text-start">
     <button class="btn btn-outline-success mb-3" data-bs-toggle="modal" data-bs-target="#onlineUsersModal">
@@ -45,11 +49,15 @@
         <div class="user-list p-3">
             <h5>💬 Chat Started With</h5>
             <ul class="list-group">
-                @foreach ($users as $user)
-                    <li class="list-group-item user-item" data-id="{{ $user->id }}" style="cursor:pointer;">
-                        {{ $user->name }}
-                    </li>
-                @endforeach
+               @foreach ($users as $user)
+    <li class="list-group-item user-item d-flex justify-content-between align-items-center" data-id="{{ $user->id }}" style="cursor:pointer;">
+        <span>
+            <span class="online-badge me-1 d-none" id="online-indicator-{{ $user->id }}"></span>
+            {{ $user->name }}
+        </span>
+    </li>
+@endforeach
+
             </ul>
         </div>
 
