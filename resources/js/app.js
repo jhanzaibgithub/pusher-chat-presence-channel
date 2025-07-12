@@ -46,9 +46,10 @@ function updateOnlineUserList() {
     }
 
     filteredUsers.forEach(user => {
-        $list.append(`<li class="list-group-item">${user.name}</li>`);
+        $list.append(`<li class="list-group-item user-item" data-id="${user.id}" style="cursor:pointer;">${user.name}</li>`);
     });
 }
+
 
 
     // Click on user to start chat
