@@ -32,12 +32,9 @@ window.Echo.join('chat.presence')
         }
     });
 
-// Helper to update modal with online users
 function updateOnlineUserList() {
     const $list = $('#online-users-list');
     $list.empty();
-
-    // Filter out the current user
     const filteredUsers = onlineUsers.filter(user => user.id !== window.userId);
 
     if (filteredUsers.length === 0) {
