@@ -21,12 +21,6 @@
 <!-- JS (Optional for dropdowns, modals, etc.) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Scripts via Vite -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-
-    <script>
-        window.userId = {{ auth()->id() }};
-    </script>
 </head>
 <body>
     <div id="app">

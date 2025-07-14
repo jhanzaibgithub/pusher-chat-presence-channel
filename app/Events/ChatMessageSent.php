@@ -25,10 +25,11 @@ class ChatMessageSent implements ShouldBroadcast
     {
         return [
             'id' => $this->message->id,
-            'sender_id' => $this->message->sender_id,
-            'receiver_id' => $this->message->receiver_id,
+            // 'sender_id' => $this->message->sender_id,
+            // 'receiver_id' => $this->message->receiver_id,
             'message' => $this->message->message,
             'sender_name' => $this->message->sender->name,
+            'receiver_name' => $this->message->receiver->name,
             'created_at' => $this->message->created_at->toDateTimeString(),
         ];
     }
