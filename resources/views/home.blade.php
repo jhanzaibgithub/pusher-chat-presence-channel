@@ -15,6 +15,10 @@
                     @endif
 
                     {{ __('You are logged in!') }}
+                    <br>
+                    <a href="{{ route('chat.page') }}">
+                        <button class="btn btn primary">Go To Chat</button>
+                    </a>
                 </div>
             </div>
         </div>
