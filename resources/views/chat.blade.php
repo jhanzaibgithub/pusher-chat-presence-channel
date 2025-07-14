@@ -21,11 +21,13 @@
 @else
     <h1>Welcome to Pusher Chat App</h1>
 @endif
+<!-- Check Online Users Button -->
 <div class="text-start">
     <button class="btn btn-outline-success mb-3" data-bs-toggle="modal" data-bs-target="#onlineUsersModal">
         👥 Check Online Users
     </button>
 </div>
+<!-- Online Users Modal -->
 <div class="modal fade" id="onlineUsersModal" tabindex="-1" aria-labelledby="onlineUsersModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -35,6 +37,7 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group" id="online-users-list">
+                    <!-- Dynamic user list will be appended here -->
                 </ul>
             </div>
         </div>
@@ -42,6 +45,7 @@
 </div>
 
     <div class="chat-container mx-auto mt-3">
+        <!-- User List -->
         <div class="user-list p-3">
             <h5>💬 Chat Started With</h5>
             <ul class="list-group">
@@ -57,9 +61,10 @@
             </ul>
         </div>
 
+        <!-- Chat Box -->
         <div class="chat-box">
             <div class="p-3 border-bottom">
-                <h5><span id="chat-with"></span></h5>
+                <h5>Chat with <span id="chat-with">No one</span></h5>
             </div>
             <div id="messages" class="messages"></div>
 
